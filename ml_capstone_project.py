@@ -72,3 +72,24 @@ plt.xlabel('Actual Prices')
 plt.ylabel('Predicted Prices')
 plt.title('Actual vs Predicted Prices')
 plt.show()
+# Preprocess new data
+newdata = [["Lenovo", "Notebook", 15.6, "Full HD 1920x1080", "Intel Core i3 7100U 2.4GHz", "8GB", "1TB HDD", "Nvidia GeForce 940MX", "No OS", "2.2kg"]]
+newdf = pd.DataFrame(newdata, columns=['Company', 'TypeName', 'Inches', 'ScreenResolution', 'Cpu', 'Ram', 'Memory', 'Gpu', 'OpSys', 'Weight'])
+
+# Convert data types and preprocess new data
+newdf['Inches'] = newdf['Inches'].astype(float)
+newdf['Weight'] = newdf['Weight'].str.extract(r'(\d+\.\d+)').astype(float)
+newdf['Ram'] = newdf['Ram'].str.replace('GB', '').astype(int)
+
+# Apply the same one-hot encoding as the training data
+newdf = pd.get_dummies(newdf, columns=['Company', 'TypeName', 'ScreenResolution', 'Cpu', 'Memory', 'Gpu', 'OpSys'], drop_first=True)
+
+# Ensure newdf has the same columns as X_train
+missing_cols = set(X_train.columns) - set(newdf.columns)
+additional_columns = pd.DataFrame(0, index=newdf.index, columns=list(missing_cols))
+newdf = pd.concat([newdf, additional_columns], axis=1)
+newdf = newdf[X_train.columns]
+
+# Predict the price for the new data
+new_price_pred = model.predict(newdf)
+print(f"Predicted Price for new data: {new_price_pred[0]}")
